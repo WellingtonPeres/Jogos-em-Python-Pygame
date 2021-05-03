@@ -16,12 +16,20 @@ class Ball:
 		pygame.draw.circle(self.screen, self.color, (self.positionX, self.positionY), self.radius)
 
 	def start_moving(self):
-		self.directionX = 15
-		self.directionY = 5
+		self.directionX = 1#15
+		self.directionY = 1#5
 
 	def move(self):
 		self.positionX += self.directionX
 		self.positionY += self.directionY
+
+	def paddle_collision(self):
+		# Inverter
+		self.directionX = - self.directionX
+
+	def wall_colision(self):
+		# Inverter
+		self.directionY = - self.directionY
 
 
 class Paddle:
@@ -44,6 +52,39 @@ class Paddle:
 		elif self.state == "down":
 			self.positionY += 10
 
+	def clamp(self):
+		if self.positionY <= 0:
+			self.positionY = 0
+
+		if self.positionY + self.height >= HEIGHT:
+			self.positionY = HEIGHT - self.height
+
+
+class CollisionManager:
+	def between_ball_and_paddle1(self, ball, paddle1):
+		if ball.positionY + ball.radius > paddle1.positionY and ball.positionY - ball.radius < paddle1.positionY + paddle1.height:
+			if ball.positionX - ball.radius <= paddle1.positionX + paddle1.width:
+				return True
+
+		return False
+
+	def between_ball_and_paddle2(self, ball, paddle2):
+		if ball.positionY + ball.radius > paddle2.positionY and ball.positionY - ball.radius < paddle2.positionY + paddle2.height:
+			if ball.positionX + ball.radius >= paddle2.positionX:
+				return True
+
+		return False
+
+	def between_ball_and_walls(self, ball):
+		# Top
+		if ball.positionY - ball.radius <= 0:
+			return True
+
+		# Bottom
+		if ball.positionY + ball.radius >= HEIGHT:
+			return True
+
+		return False
 
 pygame.init()
 
@@ -68,6 +109,7 @@ paint_back()
 ball = Ball(screen, WHITE, WIDTH//2, HEIGHT//2, 15)
 paddle1 = Paddle(screen, WHITE, 15, HEIGHT//2 - 60, 20, 120)
 paddle2 = Paddle(screen, WHITE, WIDTH - 20 - 15, HEIGHT//2 - 60, 20, 120)
+collision = CollisionManager()
 
 # VARIABLES
 playing = False
@@ -99,14 +141,28 @@ while True:
 
 	if playing:
 		paint_back()
-		# ball movement
+		# Ball movement
 		ball.move()
 		ball.show()
 
+		# Paddle1
 		paddle1.move()
+		paddle1.clamp()
 		paddle1.show()
 
+		# Paddle2
 		paddle2.move()
+		paddle2.clamp()
 		paddle2.show()
+
+		# Check for collisions
+	if collision.between_ball_and_paddle1(ball, paddle1):
+		ball.paddle_collision()
+
+	if collision.between_ball_and_paddle2(ball, paddle2):
+		ball.paddle_collision()
+
+	if collision.between_ball_and_walls(ball):
+		ball.wall_colision()
 
 	pygame.display.update()
