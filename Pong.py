@@ -24,11 +24,11 @@ class Ball:
 		self.positionY += self.directionY
 
 	def paddle_collision(self):
-		# Inverter
+		# Invert Direction
 		self.directionX = - self.directionX
 
 	def wall_colision(self):
-		# Inverter
+		# Invert Direction
 		self.directionY = - self.directionY
 
 
